@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -31,7 +32,7 @@ public class TropheeController {
     TournoiRepository tournoiRepository;
 
     @RequestMapping(value = "/Trophee/{idTrophee}", method = RequestMethod.GET)
-    Epreuve finEpreuveByTrophe (@PathVariable int idTrophee){
+    Epreuve findEpreuveByTrophe (@PathVariable int idTrophee){
         return tropheeRepository.findEpreuveByTrophee(tropheeRepository.getOne(idTrophee));
 
     }
@@ -56,5 +57,35 @@ public class TropheeController {
     @RequestMapping(value = "/Trophee/Epreuve/{idEpreuve}", method = RequestMethod.GET)
     Trophee findTropheeByEpreuve (@PathVariable int idEpreuve) {
         return tropheeRepository.findTropheeByEpreuve(epreuveRepository.getOne(idEpreuve));
+    }
+
+    @RequestMapping(value = "/Trophee/ParJoueur/{idTournoi}/{idJoueur}", method = RequestMethod.GET)
+    List<Epreuve> findTropheeJoueur(@PathVariable int idTournoi, @PathVariable int idJoueur) {
+        List<Epreuve> trophees = new ArrayList<>();
+        List<Trophee> idTrophee = new ArrayList<>();
+        idTrophee = tropheeRepository.findTropheeByTournoiByJoueur(
+                tournoiRepository.getOne(idTournoi), joueurRepository.getOne(idJoueur)
+        );
+        if(idTrophee.size()!=0){
+            for(int i=0;i<idTrophee.size();i++){
+                Epreuve e = this.findEpreuveByTrophe(idTrophee.get(i).getId());
+                trophees.add(e);
+            }
+        }
+        return trophees;
+    }
+
+    @RequestMapping(value = "/Trophee/Joueur/Tout/{idJoueur}", method = RequestMethod.GET)
+    List<Epreuve> findListTropheeByJoueur(@PathVariable int idJoueur) {
+        List<Trophee> listTrophees = new ArrayList<>();
+        listTrophees = tropheeRepository.findTropheeByJoueur(joueurRepository.getOne(idJoueur));
+
+        List<Epreuve> listEpreuve = new ArrayList<>();
+
+        for(Trophee trophee : listTrophees) {
+            listEpreuve.add(tropheeRepository.findEpreuveByTrophee(trophee));
+        }
+
+        return listEpreuve;
     }
 }

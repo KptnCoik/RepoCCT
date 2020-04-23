@@ -14,10 +14,22 @@ public class Trophee implements Serializable {
     @Column(name = "id_trophee")
     private int id;
 
+    @Column(name="icone")
+    private String icone;
+
+    @Column(name="detail")
+    private String detail;
+
     public Trophee() {
     }
 
-    public int getId() {
-        return id;
-    }
+    public int getId() {return id;}
+
+    public String getIcone() {return icone;}
+
+    public void setIcone(String icone) {this.icone = icone;}
+
+    public String getDetail() {return detail;}
+
+    public void setDetail(String detail) {this.detail = detail;}
 }

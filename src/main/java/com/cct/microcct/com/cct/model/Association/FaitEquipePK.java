@@ -36,9 +36,7 @@ public class FaitEquipePK implements Serializable {
         this.idEquipe = idEquipe;
     }
 
-    public boolean isBonus() {
-        return bonus;
-    }
+    public boolean isBonus() {return bonus;}
 
     public void setBonus(boolean bonus) {
         this.bonus = bonus;

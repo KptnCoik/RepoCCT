@@ -22,7 +22,7 @@ public interface TropheeRepository extends JpaRepository<Trophee,Integer> {
     @Query("select t from Trophee t inner join TropheeGagne tg on t.id = tg.trophee where tg.joueur = :idJoueur and tg.tournoi = :idTournoi")
     List<Trophee> findTropheeByTournoiByJoueur(Tournoi idTournoi, Joueur idJoueur);
 
-    @Query("select t from Trophee t inner join TropheeGagne tg on t.id = tg.trophee where tg.joueur = :idJoueur")
+    @Query("select t from Trophee t inner join TropheeGagne tg on t.id = tg.trophee where tg.joueur = :idJoueur order by t.id")
     List<Trophee> findTropheeByJoueur(Joueur idJoueur);
 
     @Query("select t from Trophee t inner join TropheeGagne tg on t.id = tg.trophee where tg.epreuve = :idEpreuve")

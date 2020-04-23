@@ -15,7 +15,11 @@ public interface JoueurRepository extends JpaRepository<Joueur,Integer> {
 
     public Optional<Joueur> findByNom(String nom);
 
+
     public List<Joueur> findAll();
+
+    @Query("select j from Joueur j where j.pseudo = :login and j.password = :password")
+    Joueur findJoueurByLoginPassword(String login, String password);
 
     @Query("select jjt from JoueurJoueTournoi jjt where jjt.joueur = :idJoueur and jjt.tournoi = :idTournoi")
     JoueurJoueTournoi findPointsJoueurByTournoi(Joueur idJoueur, Tournoi idTournoi);
@@ -46,8 +50,9 @@ public interface JoueurRepository extends JpaRepository<Joueur,Integer> {
     Epreuve findBonusEquipeJoueur(Joueur idJoueur, Tournoi idTournoi);
 
     @Query("select t from Tournoi t inner join JoueurJoueTournoi jjt on t.id = jjt.tournoi " +
-            "where jjt.joueur = :idJoueur")
+            "where jjt.joueur = :idJoueur order by t.id" )
     List<Tournoi> findTournoisByJoueur(Joueur idJoueur);
+
 }
 
 

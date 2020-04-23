@@ -3,8 +3,11 @@ package com.cct.microcct.com.cct.controller;
 import com.cct.microcct.com.cct.model.Entité.Epreuve;
 import com.cct.microcct.com.cct.model.Entité.Equipe;
 import com.cct.microcct.com.cct.model.Entité.Joueur;
+import com.cct.microcct.com.cct.model.Entité.Tournoi;
 import com.cct.microcct.com.cct.repository.EpreuveRepository;
 import com.cct.microcct.com.cct.repository.EquipeRepository;
+import com.cct.microcct.com.cct.repository.JoueurRepository;
+import com.cct.microcct.com.cct.repository.TournoiRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +25,15 @@ public class EpreuveController {
 
     @Autowired
     EquipeRepository equipeRepository;
+
+    @Autowired
+    TournoiRepository tournoiRepository;
+
+    @Autowired
+    JoueurRepository joueurRepository;
+
+    @Autowired
+    JoueurController joueurController;
 
     @RequestMapping(value = "/Epreuve/{idEpreuve}", method = RequestMethod.GET)
     public Optional<Epreuve> findEpreuveById(@PathVariable int idEpreuve) {
@@ -71,5 +83,96 @@ public class EpreuveController {
             joueurs = equipeRepository.findJoueursByEquipe(equipeRepository.getOne(equipe.get(0).getId()));
         }
         return joueurs;
+    }
+
+    @RequestMapping(value = "/Epreuve/ListPointsIndividuel/{idEpreuve}", method = RequestMethod.GET)
+    List<Float> findListePointsEpreuveIndividuel(@PathVariable int idEpreuve) {
+        List<Joueur> joueurs = new ArrayList<>();
+        joueurs = epreuveRepository.findJoueursByEpreuveIndividuel(epreuveRepository.getOne(idEpreuve));
+
+        List<Float> listePoints = new ArrayList<>();
+
+        for(Joueur joueur : joueurs) {
+            listePoints.add(joueurController.findPointsJoueurByEpreuve(joueur.getId(),epreuveRepository.getOne(idEpreuve).getId()));
+        }
+        return listePoints;
+    }
+
+    @RequestMapping(value = "/Epreuve/ListPointsEquipe/{idEpreuve}", method = RequestMethod.GET)
+    List<Float> findListePointsEpreuveEquipe(@PathVariable int idEpreuve) {
+        List<Joueur> joueurs = new ArrayList<>();
+        joueurs = epreuveRepository.findJoueursByEpreuveEquipe(epreuveRepository.getOne(idEpreuve));
+
+        List<Float> listePoints = new ArrayList<>();
+
+        for(Joueur joueur : joueurs) {
+            listePoints.add(joueurController.findPointsJoueurByEpreuve(joueur.getId(),epreuveRepository.getOne(idEpreuve).getId()));
+        }
+        return listePoints;
+    }
+
+    @RequestMapping(value= "/Epreuve/ListPositionEpreuveIndividuelle/{idEpreuve}", method = RequestMethod.GET)
+    List<Integer> findListPositionEpreuveIndividuelle(@PathVariable int idEpreuve) {
+        List<Joueur> joueurs = new ArrayList<>();
+        joueurs = epreuveRepository.findJoueursByEpreuveIndividuel(epreuveRepository.getOne(idEpreuve));
+
+        List<Integer> listePosition = new ArrayList<>();
+
+        for(Joueur joueur : joueurs) {
+            listePosition.add(joueurController.finClassementByEpreuveIndividuel(joueur.getId(),epreuveRepository.getOne(idEpreuve).getId()));
+        }
+        return listePosition;
+
+    }
+
+    @RequestMapping(value= "/Epreuve/ListPositionEpreuveEquipe/{idEpreuve}", method = RequestMethod.GET)
+    List<Integer> findListPositionEpreuveEquipe(@PathVariable int idEpreuve) {
+        List<Joueur> joueurs = new ArrayList<>();
+        joueurs = epreuveRepository.findJoueursByEpreuveEquipe(epreuveRepository.getOne(idEpreuve));
+
+        List<Integer> listePosition = new ArrayList<>();
+
+        for(Joueur joueur : joueurs) {
+            listePosition.add(joueurController.finClassementByEpreuveEquipe(joueur.getId(),epreuveRepository.getOne(idEpreuve).getId()));
+        }
+        return listePosition;
+
+    }
+
+    @RequestMapping(value= "/Epreuve/ListBonusEpreuve/{idEpreuve}", method = RequestMethod.GET)
+    List<Boolean> findListBonusEpreuveIndividuelle(@PathVariable int idEpreuve) {
+        List<Joueur> joueurs = new ArrayList<>();
+
+        if (epreuveRepository.findById(idEpreuve).get().getType().equals("Individuel")) {
+            joueurs = epreuveRepository.findJoueursByEpreuveIndividuel(epreuveRepository.getOne(idEpreuve));
+        } else {
+            joueurs = epreuveRepository.findJoueursByEpreuveEquipe(epreuveRepository.getOne(idEpreuve));
+        }
+        List<Boolean> listeBonus = new ArrayList<>();
+
+        for(Joueur joueur : joueurs) {
+            listeBonus.add(joueurController.isEpreuveBonus(joueur.getId(),epreuveRepository.getOne(idEpreuve).getId()));
+        }
+        return listeBonus;
+
+    }
+
+    @RequestMapping(value= "/Epreuve/ListMalusEpreuve/{idEpreuve}", method = RequestMethod.GET)
+    List<Boolean> findListMalusEpreuveIndividuelle(@PathVariable int idEpreuve) {
+        List<Joueur> joueurs = new ArrayList<>();
+        joueurs = epreuveRepository.findJoueursByEpreuveIndividuel(epreuveRepository.getOne(idEpreuve));
+
+        List<Boolean> listeMalus = new ArrayList<>();
+
+        for(Joueur joueur : joueurs) {
+            listeMalus.add(joueurController.isEpreuveMalus(joueur.getId(),epreuveRepository.getOne(idEpreuve).getId()));
+        }
+        return listeMalus;
+
+    }
+
+    @RequestMapping(value= "/Epreuve/Tournoi/{idEpreuve}", method = RequestMethod.GET)
+    Tournoi findTournoiByEpreuve(@PathVariable int idEpreuve) {return epreuveRepository.findTournoiByEpreuve(epreuveRepository.getOne(idEpreuve));
+
     }
 }

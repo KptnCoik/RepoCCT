@@ -56,4 +56,10 @@ public interface EpreuveRepository extends JpaRepository<Epreuve,Integer> {
 
     @Query("select ej from EpreuveJoue ej where ej.epreuve = :idEpreuve and ej.joueur = :idJoueur")
     EpreuveJoue isBonus(Epreuve idEpreuve, Joueur idJoueur);
+
+    @Query("select eje from EpreuveJoueEquipe eje where eje.epreuve = :idEpreuve")
+    List<EpreuveJoueEquipe> getPoints(Epreuve idEpreuve);
+
+    @Query("select t from Tournoi t inner join EpreuveTournoi et on t.id = et.tournoi where et.epreuve = :idEpreuve")
+    Tournoi findTournoiByEpreuve(Epreuve idEpreuve);
 }

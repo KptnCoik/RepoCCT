@@ -19,6 +19,12 @@ public class Joueur implements Serializable {
     @Column(name = "Nom")
     private String nom;
 
+    @Column(name="Pseudo")
+    private String pseudo;
+
+    @Column(name="MotDePasse")
+    private String password;
+
     public Joueur(int id, String nom) {
         this.id = id;
         this.nom = nom;
@@ -43,5 +49,11 @@ public class Joueur implements Serializable {
         this.nom = nom;
     }
 
+    public String getPseudo() {return pseudo;}
 
+    public void setPseudo(String pseudo) {this.pseudo = pseudo;}
+
+    public String getPassword() {return password;}
+
+    public void setPassword(String password) {this.password = password;}
 }
