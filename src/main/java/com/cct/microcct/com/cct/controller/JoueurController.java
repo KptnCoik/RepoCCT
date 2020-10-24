@@ -5,12 +5,23 @@ import com.cct.microcct.com.cct.repository.EpreuveRepository;
 import com.cct.microcct.com.cct.repository.JoueurRepository;
 import com.cct.microcct.com.cct.repository.TournoiRepository;
 import com.cct.microcct.com.cct.repository.UtilsRepository;
+import com.cct.microcct.com.cct.security.AppAuthProvider;
+import com.cct.microcct.com.cct.security.BCryptManagerUtil;
+import com.cct.microcct.com.cct.security.PasswordEncrypt1;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -43,9 +54,28 @@ public class JoueurController {
         return joueurRepository.findAll();
     }
 
+    @RequestMapping(value = "/loginBis", method = RequestMethod.GET)
+    public HttpServletResponse loginGet() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        HttpServletResponse response = null;
+
+        if (!(auth instanceof AnonymousAuthenticationToken)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return response;
+        }
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        return response;
+    }
+
     @RequestMapping(value = "/Joueur/SignIn/{login}/{password}", method = RequestMethod.GET)
     public Joueur findJoueurByLoginPassword(@PathVariable String login, @PathVariable String password, HttpServletResponse response) {
         Joueur joueur = new Joueur();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(auth.toString());
+        System.out.println(auth.getDetails().toString());
+        System.out.println(auth.getPrincipal().toString());
+        System.out.println(auth.getName());
         joueur = joueurRepository.findJoueurByLoginPassword(login, password);
         if (!joueur.equals(null)) {
             response.setStatus(HttpServletResponse.SC_OK);
@@ -55,6 +85,36 @@ public class JoueurController {
             return joueur;
         }
 
+    }
+
+    @RequestMapping(value = "/Joueur/SignInS/{login}/{password}", method = RequestMethod.GET)
+    public Joueur findJoueurByLoginPasswordEncrypt(@PathVariable String login, @PathVariable String password, HttpServletResponse response) {
+        Joueur joueur = new Joueur();
+        joueur = joueurRepository.findUserWithName(login).get();
+        String passwordSecure = joueur.getPassword();
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String passwordEncrypted = encoder.encode(password);
+        PasswordEncrypt1 passwordEncrypt1 = new PasswordEncrypt1();
+        //if (BCryptManagerUtil.passwordencoder().matches(passwordEncrypted,passwordSecure)) {
+        if(passwordEncrypt1.decrypt(passwordSecure).equals(password)){
+            response.setStatus(HttpServletResponse.SC_OK);
+            return joueur;
+        } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return null;
+        }
+
+    }
+
+    @Transactional
+    @RequestMapping(value = "/Joueur/UpdatePassword/{idJoueur}/{newPassword}", method = RequestMethod.POST)
+    public HttpStatus updatePasswordJoueur(@PathVariable int idJoueur, @PathVariable String newPassword) {
+        Joueur joueur = joueurRepository.getOne(idJoueur);
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        Joueur joueurSecure = new Joueur(joueur.getId(),joueur.getUsername(),joueur.getPassword());
+        PasswordEncrypt1 passwordEncrypt1 = new PasswordEncrypt1();
+        joueurRepository.updatePasswordJoueur(idJoueur,passwordEncrypt1.encrypt(newPassword));
+        return HttpStatus.ACCEPTED;
     }
 
     @RequestMapping(value = "/Joueur/PointsTournoi/{idJoueur}/{idTournoi}", method = RequestMethod.GET)

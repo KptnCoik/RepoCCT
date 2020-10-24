@@ -3,8 +3,10 @@ package com.cct.microcct.com.cct.repository;
 import com.cct.microcct.com.cct.model.Association.JoueurJoueTournoiPK;
 import com.cct.microcct.com.cct.model.Entité.*;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,10 +15,21 @@ import java.util.Optional;
 @Repository
 public interface JoueurRepository extends JpaRepository<Joueur,Integer> {
 
-    public Optional<Joueur> findByNom(String nom);
+    //public Optional<Joueur> findByNom(String username);
 
+    @Query(" select u from Joueur u " +
+            " where u.username = ?1")
+    Optional<Joueur> findUserWithName(String username);
 
+    @Query("select j from Joueur j order by username")
     public List<Joueur> findAll();
+
+    //@Query("select mot_de_passe from Joueur  where id_joueur = idJoueur")
+    //public java.lang.CharSequence findPaswwordById(int idJoueur);
+
+    @Modifying
+    @Query("update Joueur set mot_de_passe = :newPassword where id_joueur = :idJoueur")
+    void updatePasswordJoueur(int idJoueur, String newPassword);
 
     @Query("select j from Joueur j where j.pseudo = :login and j.password = :password")
     Joueur findJoueurByLoginPassword(String login, String password);

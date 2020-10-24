@@ -1,13 +1,16 @@
 package com.cct.microcct.com.cct.model.Entité;
 
+import com.cct.microcct.com.cct.security.BCryptManagerUtil;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 @Entity
 @Table(name = "Joueur", schema = "public")
-public class Joueur implements Serializable {
+public class Joueur implements Serializable, UserDetails {
 
     private static final long serialVersionUID = 1L;
 
@@ -17,7 +20,7 @@ public class Joueur implements Serializable {
     private int id;
 
     @Column(name = "Nom")
-    private String nom;
+    private String username;
 
     @Column(name="Pseudo")
     private String pseudo;
@@ -25,9 +28,10 @@ public class Joueur implements Serializable {
     @Column(name="MotDePasse")
     private String password;
 
-    public Joueur(int id, String nom) {
+    public Joueur(int id, String username, String password) {
         this.id = id;
-        this.nom = nom;
+        this.username = username;
+        this.password = BCryptManagerUtil.passwordencoder().encode(password);
     }
 
     public Joueur() {
@@ -41,12 +45,12 @@ public class Joueur implements Serializable {
         this.id = id;
     }
 
-    public String getNom() {
-        return nom;
+    public String getUsername() {
+        return username;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPseudo() {return pseudo;}
@@ -55,5 +59,30 @@ public class Joueur implements Serializable {
 
     public String getPassword() {return password;}
 
-    public void setPassword(String password) {this.password = password;}
+    public void setPassword(String password) {
+        if (!password.isEmpty()) {
+            this.password = BCryptManagerUtil.passwordencoder().encode(password);
+        }
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return false;
+    }
+    @Override
+    public boolean isAccountNonLocked() {
+        return false;
+    }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return false;
+    }
+    @Override
+    public boolean isEnabled() {
+        return false;
+    }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
 }
