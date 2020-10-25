@@ -8,6 +8,7 @@ import com.cct.microcct.com.cct.repository.UtilsRepository;
 import com.cct.microcct.com.cct.security.AppAuthProvider;
 import com.cct.microcct.com.cct.security.BCryptManagerUtil;
 import com.cct.microcct.com.cct.security.PasswordEncrypt1;
+import com.cct.microcct.com.cct.service.JoueurService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,7 @@ public class JoueurController {
     TournoiRepository tournoiRepository;
 
     @Autowired
-    TournoiController tournoiController;
+    JoueurService joueurService;
 
     @RequestMapping(value = "/Joueur/{id}", method = RequestMethod.GET)
     public Optional<Joueur> findJoueurById(@PathVariable int id) {
@@ -124,26 +125,7 @@ public class JoueurController {
 
     @RequestMapping(value = "/Joueur/PointsEpreuve/{idJoueur}/{idEpreuve}", method = RequestMethod.GET)
     public float findPointsJoueurByEpreuve(@PathVariable int idJoueur, @PathVariable int idEpreuve) {
-        if (epreuveRepository.findById(idEpreuve).get().getType().equals("Individuel")) {
-            if (epreuveRepository.isBonus(epreuveRepository.getOne(idEpreuve), joueurRepository.getOne(idJoueur)).getId().isBonus()) {
-                float points = joueurRepository.findPointsJoueurByEpreuve(joueurRepository.getOne(idJoueur), epreuveRepository.getOne(idEpreuve)).getId().getPoints();
-                points = points * 2;
-                return points;
-            } else if(epreuveRepository.isBonus(epreuveRepository.getOne(idEpreuve), joueurRepository.getOne(idJoueur)).getId().isMalus()) {
-                float points = joueurRepository.findPointsJoueurByEpreuve(joueurRepository.getOne(idJoueur), epreuveRepository.getOne(idEpreuve)).getId().getPoints();
-                points = points / 2;
-                return points;
-             } else {
-                return joueurRepository.findPointsJoueurByEpreuve(joueurRepository.getOne(idJoueur), epreuveRepository.getOne(idEpreuve)).getId().getPoints();
-
-            }
-        } else if (epreuveRepository.isBonusEquipe(epreuveRepository.getOne(idEpreuve), joueurRepository.getOne(idJoueur)).getId().isBonus()) {
-            float points = joueurRepository.findPointsJoueurByEpreuveEquipe(joueurRepository.getOne(idJoueur), epreuveRepository.getOne(idEpreuve)).getId().getPoints();
-            points = points * 2;
-            return points;
-        } else {
-            return joueurRepository.findPointsJoueurByEpreuveEquipe(joueurRepository.getOne(idJoueur), epreuveRepository.getOne(idEpreuve)).getId().getPoints();
-        }
+        return joueurService.findPointsJoueurByEpreuve(idJoueur,idEpreuve);
     }
 
     @RequestMapping(value = "/Joueur/EquipeEpreuve/{idJoueur}/{idEpreuve}", method = RequestMethod.GET)
@@ -158,13 +140,7 @@ public class JoueurController {
 
     @RequestMapping(value = "/Joueur/Bonus/{idJoueur}/{idTournoi}", method = RequestMethod.GET)
     public Epreuve findBonusJoueur(@PathVariable int idJoueur, @PathVariable int idTournoi) {
-        Epreuve epreuve = null;
-        epreuve = joueurRepository.findBonusEquipeJoueur(joueurRepository.getOne(idJoueur), tournoiRepository.getOne(idTournoi));
-        if (epreuve == null) {
-            return joueurRepository.findBonusJoueur(joueurRepository.getOne(idJoueur), tournoiRepository.getOne(idTournoi));
-        } else {
-            return epreuve;
-        }
+        return joueurService.findBonusJoueur(idJoueur,idTournoi);
     }
 
     @RequestMapping(value = "/Joueur/Tournois/{idJoueur}", method = RequestMethod.GET)
@@ -174,136 +150,38 @@ public class JoueurController {
 
     @RequestMapping(value = "/Joueur/PositionTournoi/{idJoueur}/{idTournoi}", method = RequestMethod.GET)
     public int finClassementByTournoi(@PathVariable int idJoueur, @PathVariable int idTournoi) {
-
-        List<Joueur> classementTournoi = new ArrayList<>();
-        classementTournoi = tournoiRepository.findJoueurOrdeByTournoi(tournoiRepository.getOne(idTournoi));
-
-        float tableauPoints[] = new float[classementTournoi.size()];
-
-        float pointJoueur = joueurRepository.findPointsJoueurByTournoi(joueurRepository.getOne(idJoueur), tournoiRepository
-                .getOne(idTournoi)).getId().getPoints();
-
-        int cpt = 1;
-
-        for (int i = 0; i < classementTournoi.size(); i++) {
-            tableauPoints[i] = (joueurRepository.findPointsJoueurByTournoi(joueurRepository.getOne(classementTournoi.get(i).getId()), tournoiRepository.getOne(idTournoi)))
-                    .getId().getPoints();
-        }
-
-        for (int i = 0; i < tableauPoints.length; i++) {
-            if (tableauPoints[i] > pointJoueur) {
-                cpt++;
-            }
-        }
-
-        return cpt;
+        return joueurService.finClassementByTournoi(idJoueur, idTournoi);
     }
 
     @RequestMapping(value = "/Joueur/PositionEpreuveIndividuel/{idJoueur}/{idEpreuve}", method = RequestMethod.GET)
     public int finClassementByEpreuveIndividuel(@PathVariable int idJoueur, @PathVariable int idEpreuve) {
-
-        List<Joueur> classementEpreuve = new ArrayList<>();
-        classementEpreuve = epreuveRepository.findJoueursByEpreuveIndividuel(epreuveRepository.getOne(idEpreuve));
-
-        float tableauPoints[] = new float[classementEpreuve.size()];
-
-        float pointJoueur = joueurRepository.findPointsJoueurByEpreuve(joueurRepository.getOne(idJoueur), epreuveRepository
-                .getOne(idEpreuve)).getId().getPoints();
-
-        int cpt = 1;
-
-        for (int i = 0; i < classementEpreuve.size(); i++) {
-            tableauPoints[i] = (joueurRepository.findPointsJoueurByEpreuve(joueurRepository.getOne(classementEpreuve.get(i).getId()), epreuveRepository.getOne(idEpreuve)))
-                    .getId().getPoints();
-        }
-
-        for (int i = 0; i < tableauPoints.length; i++) {
-            if (tableauPoints[i] > pointJoueur) {
-                cpt++;
-            }
-        }
-
-        return cpt;
+        return joueurService.finClassementByEpreuveIndividuel(idJoueur,idEpreuve);
     }
 
     @RequestMapping(value = "/Joueur/PositionEpreuveEquipe/{idJoueur}/{idEpreuve}", method = RequestMethod.GET)
     public int finClassementByEpreuveEquipe(@PathVariable int idJoueur, @PathVariable int idEpreuve) {
-
-        List<EpreuveJoueEquipe> classementEpreuveEquipe = new ArrayList<>();
-        classementEpreuveEquipe = epreuveRepository.getPoints(epreuveRepository.getOne(idEpreuve));
-
-        float tableauPoints[] = new float[classementEpreuveEquipe.size()];
-
-        float pointJoueur = joueurRepository.findPointsJoueurByEpreuveEquipe(joueurRepository.getOne(idJoueur), epreuveRepository
-                .getOne(idEpreuve)).getId().getPoints();
-
-        int cpt = 1;
-
-        for (int i = 0; i < classementEpreuveEquipe.size(); i++) {
-            tableauPoints[i] = classementEpreuveEquipe.get(i).getId().getPoints();
-        }
-
-        for (int i = 0; i < classementEpreuveEquipe.size(); i++) {
-            if (tableauPoints[i] > pointJoueur) {
-                cpt++;
-            }
-        }
-
-        return cpt;
+        return joueurService.finClassementByEpreuveEquipe(idJoueur,idEpreuve);
     }
 
     @RequestMapping(value = "/Joueur/isBonus/{idJoueur}/{idEpreuve}", method = RequestMethod.GET)
     public boolean isEpreuveBonus(@PathVariable int idJoueur, @PathVariable int idEpreuve) {
-        if (epreuveRepository.findById(idEpreuve).get().getType().equals("Individuel")) {
-            return epreuveRepository.isBonus(epreuveRepository.getOne(idEpreuve), joueurRepository.getOne(idJoueur)).getId().isBonus();
-        } else {
-            return epreuveRepository.isBonusEquipe(epreuveRepository.getOne(idEpreuve), joueurRepository.getOne(idJoueur)).getId().isBonus();
-        }
-
+        return joueurService.isEpreuveBonus(idJoueur,idEpreuve);
     }
 
     @RequestMapping(value = "/Joueur/isMalus/{idJoueur}/{idEpreuve}", method = RequestMethod.GET)
     public boolean isEpreuveMalus(@PathVariable int idJoueur, @PathVariable int idEpreuve) {
-        if (epreuveRepository.findById(idEpreuve).get().getType().equals("Individuel")) {
-            return epreuveRepository.isBonus(epreuveRepository.getOne(idEpreuve), joueurRepository.getOne(idJoueur)).getId().isMalus();
-        } else {
-            return false;
-        }
-
+        return joueurService.isEpreuveMalus(idJoueur,idEpreuve);
     }
 
     @RequestMapping(value = "/Joueur/TournoiGagne/{idJoueur}", method = RequestMethod.GET)
     public Tournoi tournoiGagne(@PathVariable int idJoueur) {
-        List<Tournoi> tournois = new ArrayList<>();
-        tournois = tournoiRepository.findAll();
-
-        Tournoi tournoiGagne = new Tournoi();
-
-        for(Tournoi t : tournois) {
-            if(tournoiController.findGagantByTournoi(t.getId()).getId()==idJoueur) {
-                tournoiGagne = t;
-            }
-        }
-
-        return tournoiGagne;
+        return joueurService.tournoiGagne(idJoueur);
     }
 
     @RequestMapping(value = "/Joueur/TournoiPerd/{idJoueur}", method = RequestMethod.GET)
     public Tournoi tournoiPerd(@PathVariable int idJoueur) {
-        List<Tournoi> tournois = new ArrayList<>();
-        tournois = tournoiRepository.findAll();
-
-        Tournoi tournoiGagne = new Tournoi();
-
-        for(Tournoi t : tournois) {
-            if(tournoiController.findPerdantByTournoi(t.getId()).getId()==idJoueur) {
-                tournoiGagne = t;
-            }
-        }
-
-        return tournoiGagne;
+        return joueurService.tournoiPerd(idJoueur);
     }
-
 }
 
 
