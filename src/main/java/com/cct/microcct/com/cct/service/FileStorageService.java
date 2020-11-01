@@ -39,9 +39,9 @@ public class FileStorageService {
     }
 
     public void updateFile(int id, MultipartFile image) throws IOException {
-        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
-        FileDB fileDB = new FileDB(image.getContentType(), image.getBytes(),fileName);
-        fileDBRepository.updateImageJoueur(id,image.getBytes());
+        Joueur joueur = joueurRepository.findById(id).get();
+        FileDBJoueur fileDBJoueur = fileDBJoueurRepository.selectImageByJoueur(joueur);
+        fileDBRepository.updateImageJoueur(fileDBJoueur.getFileDB().getId(),image.getBytes());
     }
 
     public FileDB getFileByJoueur(int id) {
